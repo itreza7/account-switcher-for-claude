@@ -1,12 +1,19 @@
 import { listAdapters } from '../sites';
+import { t } from '../ui/i18n';
 import { effective, pickNext, staleAfterMs } from './rotation';
 import type { SiteId, Settings, Usage } from './types';
 import { loadState, mutate } from './storage';
 import { switchTo } from './switcher';
 
+/** Which limit was hit, and how full it is. Turned into text only when shown (see reasonText). */
+export interface Reason {
+  window: 'fiveHour' | 'weekly';
+  percent: number;
+}
+
 export type Decision =
   | { action: 'none' }
-  | { action: 'notify' | 'switch'; siteId: SiteId; from: string; to: string; reason: string };
+  | { action: 'notify' | 'switch'; siteId: SiteId; from: string; to: string; reason: Reason };
 
 interface DecideInput {
   siteId: SiteId;
@@ -33,7 +40,8 @@ export function decide(input: DecideInput): Decision {
   const five = effective(active.usage.fiveHour, now);
   const week = effective(active.usage.sevenDay, now);
   if (five < th && week < th) return NONE;
-  const reason = five >= th ? `5-hour limit at ${Math.round(five)}%` : `weekly limit at ${Math.round(week)}%`;
+  const reason: Reason =
+    five >= th ? { window: 'fiveHour', percent: Math.round(five) } : { window: 'weekly', percent: Math.round(week) };
 
   const to = pickNext({
     // Plain 'next' could land on a limited account; auto-switch only moves to one with room.
@@ -47,6 +55,9 @@ export function decide(input: DecideInput): Decision {
   if (!to) return NONE;
   return { action: settings.autoSwitchMode, siteId, from: active.id, to, reason };
 }
+
+const reasonText = (r: Reason): string =>
+  r.window === 'fiveHour' ? t('bg_reason_fiveHour', { percent: r.percent }) : t('bg_reason_weekly', { percent: r.percent });
 
 export async function runAutoSwitch(now: number = Date.now()): Promise<void> {
   for (const adapter of listAdapters()) {
@@ -72,16 +83,16 @@ export async function runAutoSwitch(now: number = Date.now()): Promise<void> {
       await chrome.notifications.create(`switched:${decision.to}`, {
         type: 'basic',
         iconUrl,
-        title: 'Claude account switched',
-        message: `Switched to ${label}: ${decision.reason}`,
+        title: t('bg_switched_title'),
+        message: t('bg_switched_message', { name: label, reason: reasonText(decision.reason) }),
       });
     } else {
       await chrome.notifications.create(`autoswitch:${decision.to}`, {
         type: 'basic',
         iconUrl,
-        title: 'Claude limit near',
-        message: `${decision.reason}. Switch to ${label}?`,
-        buttons: [{ title: 'Switch now' }],
+        title: t('bg_limitNear_title'),
+        message: t('bg_limitNear_message', { reason: reasonText(decision.reason), name: label }),
+        buttons: [{ title: t('bg_switchNow') }],
         requireInteraction: true,
       });
     }

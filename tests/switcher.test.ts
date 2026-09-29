@@ -2,12 +2,14 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { loadState } from '../src/core/storage';
 import {
   loginAnother,
+  reconcileActive,
   removeAccount,
   renameAccount,
   saveCurrent,
   switchTo,
   withSwitchLock,
 } from '../src/core/switcher';
+import { claudeAdapter } from '../src/sites/claude';
 import { installChromeMock, makeCookie } from './chrome-mock';
 
 let mock: ReturnType<typeof installChromeMock>;
@@ -107,6 +109,37 @@ async function saveBoth() {
   return { a, b };
 }
 
+describe('reconcileActive', () => {
+  it('keeps the active account when the live session token is the same', async () => {
+    const { b } = await saveBoth();
+    await reconcileActive(claudeAdapter);
+    expect((await loadState()).active.claude).toBe(b.id);
+  });
+
+  it('follows a manual login into another saved account, without a network call', async () => {
+    const { a } = await saveBoth();
+    fetchMock.mockClear();
+    setSession('kA', { marker: 'manual-A' });
+    await reconcileActive(claudeAdapter);
+    expect((await loadState()).active.claude).toBe(a.id);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('clears the active account when the live token is not saved', async () => {
+    await saveBoth();
+    setSession('kC');
+    await reconcileActive(claudeAdapter);
+    expect((await loadState()).active.claude).toBeNull();
+  });
+
+  it('leaves the active account alone when logged out', async () => {
+    const { b } = await saveBoth();
+    mock.state.cookies = [];
+    await reconcileActive(claudeAdapter);
+    expect((await loadState()).active.claude).toBe(b.id);
+  });
+});
+
 describe('switchTo', () => {
   it('swaps cookies, updates active and reloads matching tabs', async () => {
     const { a, b } = await saveBoth();
@@ -153,6 +186,7 @@ describe('switchTo', () => {
     await expect(switchTo(a.id)).rejects.toThrow('not saved');
     expect(liveKey()).toBe('kC');
     expect(mock.chrome.tabs.reload).not.toHaveBeenCalled();
+    expect((await loadState()).active.claude).toBeNull();
   });
 
   it('continues when the identity fetch fails', async () => {

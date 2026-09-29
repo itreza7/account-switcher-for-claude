@@ -15,6 +15,7 @@ export const consoleAdapter: SiteAdapter = {
   cookieFilter: (c) =>
     c.domain.endsWith('anthropic.com') || ['claude.com', 'platform.claude.com'].includes(c.domain.replace(/^\./, '')),
   isLoggedIn: (cookies) => cookies.some((c) => c.name === 'sessionKey' && c.value !== ''),
+  sessionToken: (cookies) => cookies.find((c) => c.name === 'sessionKey' && c.value !== '')?.value,
   async fetchIdentity(fetch) {
     for (const origin of ORIGINS) {
       try {

@@ -1,0 +1,499 @@
+{
+  "extName": {
+    "message": "Account Switcher for Claude",
+    "description": "Extension name. Keep 'Claude' as is."
+  },
+  "extShortName": {
+    "message": "Account Switcher",
+    "description": "Short name shown in headers."
+  },
+  "extDescription": {
+    "message": "Switch between Claude accounts and see 5-hour and weekly usage. Not affiliated with Anthropic.",
+    "description": "Extension description in chrome://extensions."
+  },
+  "extActionTitle": {
+    "message": "Account Switcher for Claude",
+    "description": "Toolbar button tooltip."
+  },
+  "cmdSwitchNext": {
+    "message": "Switch Claude to the next account",
+    "description": "Keyboard shortcut description."
+  },
+  "common_active": {
+    "message": "Active"
+  },
+  "common_cancel": {
+    "message": "Cancel"
+  },
+  "common_close": {
+    "message": "Close"
+  },
+  "common_save": {
+    "message": "Save"
+  },
+  "common_settings": {
+    "message": "Settings"
+  },
+  "common_fiveHour": {
+    "message": "5-hour",
+    "description": "The rolling 5-hour usage limit."
+  },
+  "common_weekly": {
+    "message": "Weekly",
+    "description": "The weekly usage limit."
+  },
+  "common_notAffiliated": {
+    "message": "Not affiliated with or endorsed by Anthropic. \"Claude\" is a trademark of Anthropic."
+  },
+  "common_strategy_best": {
+    "message": "Most quota left"
+  },
+  "common_strategy_nextAvailable": {
+    "message": "Next available"
+  },
+  "common_strategy_next": {
+    "message": "Next in order"
+  },
+  "common_mode_off": {
+    "message": "Off"
+  },
+  "common_mode_notify": {
+    "message": "Notify"
+  },
+  "common_mode_switch": {
+    "message": "Switch"
+  },
+  "error_sessionExpired": {
+    "message": "Session expired. Log in to this account again, then save it."
+  },
+  "error_rateLimited": {
+    "message": "Claude is limiting requests right now. Try again in a minute."
+  },
+  "error_server": {
+    "message": "Claude's servers had a problem. Try again later."
+  },
+  "error_timeout": {
+    "message": "Claude took too long to answer. Try again."
+  },
+  "error_offline": {
+    "message": "Can't reach Claude. Check your internet connection."
+  },
+  "error_notSaved": {
+    "message": "The {site} account you're logged in with isn't saved. Save it first so it isn't lost.",
+    "description": "{site} is a site name, e.g. Claude or Console."
+  },
+  "error_notLoggedIn": {
+    "message": "You're not logged in to {site}. Log in first, then save.",
+    "description": "{site} is a site name."
+  },
+  "error_needTwo": {
+    "message": "Save at least two accounts to switch between them."
+  },
+  "error_noneAvailable": {
+    "message": "No other account is ready. All are near their limit or have no usage data yet."
+  },
+  "error_accountGone": {
+    "message": "That account no longer exists."
+  },
+  "error_emptyLabel": {
+    "message": "The name can't be empty."
+  },
+  "error_restoreFailed": {
+    "message": "Couldn't restore that account's session. Log in to it again and save it."
+  },
+  "error_noBackground": {
+    "message": "The extension is restarting. Close this and try again."
+  },
+  "error_generic": {
+    "message": "Something went wrong. Try again."
+  },
+  "bg_badge_window": {
+    "message": "{window}: {percent}%",
+    "description": "Toolbar tooltip: one usage window, e.g. 5-hour: 93%"
+  },
+  "bg_badge_stale": {
+    "message": "Usage may be out of date",
+    "description": "Toolbar tooltip hint when usage was not refreshed for a while"
+  },
+  "bg_reason_fiveHour": {
+    "message": "5-hour limit at {percent}%",
+    "description": "Why an account switch happens"
+  },
+  "bg_reason_weekly": {
+    "message": "Weekly limit at {percent}%",
+    "description": "Why an account switch happens"
+  },
+  "bg_switched_title": {
+    "message": "Claude account switched",
+    "description": "Notification title"
+  },
+  "bg_switched_message": {
+    "message": "Switched to {name}. {reason}.",
+    "description": "Notification text after an automatic switch. reason is a short phrase like: 5-hour limit at 95%"
+  },
+  "bg_limitNear_title": {
+    "message": "Claude limit near",
+    "description": "Notification title"
+  },
+  "bg_limitNear_message": {
+    "message": "{reason}. Switch to {name}?",
+    "description": "Notification text. reason is a short phrase like: 5-hour limit at 95%"
+  },
+  "bg_switchNow": {
+    "message": "Switch now",
+    "description": "Notification button"
+  },
+  "bg_rotated_message": {
+    "message": "Now using {name}",
+    "description": "Notification text after the keyboard shortcut switched account"
+  },
+  "bg_rotateFailed_title": {
+    "message": "Could not switch Claude account",
+    "description": "Notification title"
+  },
+  "options_title": {
+    "message": "Settings - Account Switcher for Claude",
+    "description": "Settings page tab title"
+  },
+  "options_usage_title": {
+    "message": "Usage checks"
+  },
+  "options_poll_label": {
+    "message": "Check usage every"
+  },
+  "options_unit_min": {
+    "message": "min",
+    "description": "Short unit: minutes"
+  },
+  "options_decrease": {
+    "message": "Decrease"
+  },
+  "options_increase": {
+    "message": "Increase"
+  },
+  "options_poll_help": {
+    "message": "How often the extension asks Claude for your usage. 1 to 60 minutes."
+  },
+  "options_threshold_label": {
+    "message": "Near-limit threshold"
+  },
+  "options_threshold_help": {
+    "message": "An account at or above this usage counts as near its limit."
+  },
+  "options_auto_title": {
+    "message": "Auto-switch"
+  },
+  "options_auto_desc_off": {
+    "message": "Nothing happens when an account gets near its limit."
+  },
+  "options_auto_desc_notify": {
+    "message": "You get a notification when an account gets near its limit."
+  },
+  "options_auto_desc_switch": {
+    "message": "Switches to another account when the current one gets near its limit."
+  },
+  "options_auto_warn": {
+    "message": "Switching reloads open Claude tabs and can stop a reply that is still being written."
+  },
+  "options_cooldown_label": {
+    "message": "Cooldown"
+  },
+  "options_cooldown_help": {
+    "message": "Minimum wait between automatic actions. 0 to 240 minutes."
+  },
+  "options_rotation_title": {
+    "message": "Switch to next"
+  },
+  "options_strategy_best_desc": {
+    "message": "Picks the account with the most usage left."
+  },
+  "options_strategy_nextAvailable_desc": {
+    "message": "Goes in order, but skips accounts that are near their limit."
+  },
+  "options_strategy_next_desc": {
+    "message": "Goes to the next account in your list."
+  },
+  "options_recommended": {
+    "message": "Recommended"
+  },
+  "options_rotation_note": {
+    "message": "Used by the Switch to next button, the keyboard shortcut and auto-switch. Auto-switch never picks an account near its limit."
+  },
+  "options_shortcut_title": {
+    "message": "Keyboard shortcut"
+  },
+  "options_shortcut_help": {
+    "message": "Switch to the next account from anywhere in Chrome."
+  },
+  "options_shortcut_notSet": {
+    "message": "Not set"
+  },
+  "options_shortcut_change": {
+    "message": "Change shortcut"
+  },
+  "options_privacy_title": {
+    "message": "Privacy"
+  },
+  "options_saved": {
+    "message": "Saved"
+  },
+  "options_version": {
+    "message": "Version {version}"
+  },
+  "options_github": {
+    "message": "GitHub"
+  },
+  "options_report": {
+    "message": "Report a problem"
+  },
+  "options_showWelcome": {
+    "message": "Show welcome page"
+  },
+  "welcome_title": {
+    "message": "Welcome - Account Switcher for Claude",
+    "description": "Welcome page tab title"
+  },
+  "welcome_heading": {
+    "message": "Welcome to Account Switcher for Claude"
+  },
+  "welcome_subtitle": {
+    "message": "Switch between your Claude accounts in one click and keep an eye on your 5-hour and weekly limits."
+  },
+  "welcome_start_title": {
+    "message": "Get started"
+  },
+  "welcome_step1_title": {
+    "message": "Pin the extension"
+  },
+  "welcome_step1_text": {
+    "message": "Click the puzzle-piece icon in the Chrome toolbar, then the pin next to Account Switcher."
+  },
+  "welcome_step2_title": {
+    "message": "Save your first account"
+  },
+  "welcome_step2_text": {
+    "message": "Log in to claude.ai, open the extension and click Save this account."
+  },
+  "welcome_step3_title": {
+    "message": "Add more accounts"
+  },
+  "welcome_step3_text": {
+    "message": "Click Add account, log in with the next account and save it. Your other accounts stay saved."
+  },
+  "welcome_tips_title": {
+    "message": "Good to know"
+  },
+  "welcome_tip_shortcut_title": {
+    "message": "Keyboard shortcut"
+  },
+  "welcome_tip_shortcut_text": {
+    "message": "Switch to the next account from anywhere in Chrome."
+  },
+  "welcome_tip_shortcut_set": {
+    "message": "Set one in Chrome shortcuts"
+  },
+  "welcome_tip_auto_title": {
+    "message": "Auto-switch"
+  },
+  "welcome_tip_auto_text": {
+    "message": "When an account gets near its limit, we can notify you or switch for you. Turn it on in Settings."
+  },
+  "welcome_tip_privacy_title": {
+    "message": "Privacy"
+  },
+  "welcome_open_claude": {
+    "message": "Open claude.ai"
+  },
+  "welcome_open_settings": {
+    "message": "Open settings"
+  },
+  "welcome_terms": {
+    "message": "Use each account according to {link}.",
+    "description": "{link} is replaced by a link with the text of welcome_terms_link"
+  },
+  "welcome_terms_link": {
+    "message": "Anthropic's terms"
+  },
+  "popup_durLessThanMin": {
+    "message": "<1m",
+    "description": "Duration shorter than one minute."
+  },
+  "popup_durMinutes": {
+    "message": "{m}m",
+    "description": "Duration in minutes, e.g. 45m."
+  },
+  "popup_durHoursMinutes": {
+    "message": "{h}h {m}m",
+    "description": "Duration, e.g. 2h 13m."
+  },
+  "popup_durDaysHours": {
+    "message": "{d}d {h}h",
+    "description": "Duration, e.g. 3d 4h."
+  },
+  "popup_reset": {
+    "message": "reset",
+    "description": "Usage window already reset. Lowercase, shown in small text."
+  },
+  "popup_resetsIn": {
+    "message": "resets in {time}",
+    "description": "{time} is a duration such as 2h 13m."
+  },
+  "popup_justNow": {
+    "message": "just now"
+  },
+  "popup_ago": {
+    "message": "{time} ago",
+    "description": "{time} is a duration such as 20m."
+  },
+  "popup_updatedAgo": {
+    "message": "updated {time}",
+    "description": "{time} is like '20m ago'."
+  },
+  "popup_shortFiveHour": {
+    "message": "5h",
+    "description": "Very short label for the 5-hour usage limit, next to a small meter."
+  },
+  "popup_shortWeekly": {
+    "message": "Wk",
+    "description": "Very short label for the weekly usage limit, next to a small meter."
+  },
+  "popup_refresh": {
+    "message": "Refresh usage"
+  },
+  "popup_updateAvailable": {
+    "message": "Version {version} is available."
+  },
+  "popup_download": {
+    "message": "Download"
+  },
+  "popup_unsavedBanner": {
+    "message": "You're logged in to {site} with an account that isn't saved yet.",
+    "description": "{site} is a site name, e.g. Claude."
+  },
+  "popup_savedToast": {
+    "message": "Saved {label}",
+    "description": "{label} is the account name."
+  },
+  "popup_sitesLabel": {
+    "message": "Sites",
+    "description": "Accessible label for the Claude / Console tabs."
+  },
+  "popup_accountsLabel": {
+    "message": "Accounts",
+    "description": "Accessible label for the account list."
+  },
+  "popup_switchTo": {
+    "message": "Switch to {label}",
+    "description": "{label} is the account name."
+  },
+  "popup_activeAccount": {
+    "message": "{label} (active)",
+    "description": "{label} is the account name. Accessible name of the row of the account in use."
+  },
+  "popup_moreActions": {
+    "message": "More actions for {label}",
+    "description": "{label} is the account name. Accessible name of the ... button."
+  },
+  "popup_rename": {
+    "message": "Rename"
+  },
+  "popup_remove": {
+    "message": "Remove"
+  },
+  "popup_renameLabel": {
+    "message": "Account name"
+  },
+  "popup_renamed": {
+    "message": "Renamed"
+  },
+  "popup_removed": {
+    "message": "Removed {label}",
+    "description": "{label} is the account name."
+  },
+  "popup_removeConfirm": {
+    "message": "Remove {label}? It only forgets it here.",
+    "description": "{label} is the account name."
+  },
+  "popup_noUsage": {
+    "message": "No usage data yet"
+  },
+  "popup_usageTip": {
+    "message": "{name}: {percent}% used",
+    "description": "Tooltip line. {name} is 5-hour or Weekly."
+  },
+  "popup_usageTipReset": {
+    "message": "{name}: {percent}% used, {reset}",
+    "description": "Tooltip line. {reset} is like 'resets in 2h 3m'."
+  },
+  "popup_addAccount": {
+    "message": "Add account"
+  },
+  "popup_saveCurrent": {
+    "message": "Save current {site} account",
+    "description": "{site} is a site name, e.g. Claude."
+  },
+  "popup_loginAnother": {
+    "message": "Log in to another {site} account",
+    "description": "{site} is a site name, e.g. Claude."
+  },
+  "popup_switchNext": {
+    "message": "Switch to next"
+  },
+  "popup_switchedTo": {
+    "message": "Switched to {label}",
+    "description": "{label} is the account name."
+  },
+  "popup_status": {
+    "message": "Next: {strategy} · Auto-switch: {auto}",
+    "description": "Footer status line. {strategy} and {auto} are short phrases."
+  },
+  "popup_autoAt": {
+    "message": "{mode} at {threshold}%",
+    "description": "{mode} is Notify or Switch."
+  },
+  "popup_loading": {
+    "message": "Loading accounts"
+  },
+  "popup_emptyTitle": {
+    "message": "Add your first account"
+  },
+  "popup_emptyStep1": {
+    "message": "Log in to claude.ai in this browser."
+  },
+  "popup_emptyStep2": {
+    "message": "Open this popup and save the account."
+  },
+  "popup_emptyStep3": {
+    "message": "Repeat for each account."
+  },
+  "popup_saveThisAccount": {
+    "message": "Save this account"
+  },
+  "popup_openClaude": {
+    "message": "Open claude.ai"
+  },
+  "popup_retry": {
+    "message": "Try again"
+  },
+  "common_privacy": {
+    "message": "Your saved sessions stay in this browser and are only sent to Claude. Nothing is sent to us. Anyone who can use this browser profile can use them."
+  },
+  "common_updateCheck": {
+    "message": "The extension checks GitHub once a day for new versions."
+  },
+  "error_usageUnavailable": {
+    "message": "Couldn't read this account's data. Try again later."
+  },
+  "bg_badge_windowLimiting": {
+    "message": "{window}: {percent}% (limiting)",
+    "description": "Toolbar tooltip: the usage window closest to blocking, e.g. Weekly: 99% (limiting)"
+  },
+  "popup_windowResets": {
+    "message": "Resets in {time}",
+    "description": "Shown under an account name when a usage limit is nearly used. {time} is a duration such as 2h 11m."
+  },
+  "popup_addMoreWays": {
+    "message": "More ways to add an account",
+    "description": "Accessible name of the small arrow button next to Add account that opens a menu of sites."
+  }
+}

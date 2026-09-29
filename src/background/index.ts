@@ -2,17 +2,24 @@ import { runAutoSwitch } from '../core/autoswitch';
 import { RULE_ID } from '../core/fetcher';
 import { switchNext } from '../core/rotation';
 import type { Handlers, MessageType, Request, Response } from '../core/messages';
+import { updateBadge } from '../core/badge';
+import { snapshotCookies } from '../core/cookies';
 import { getAccount, loadState, mutate, toView } from '../core/storage';
-import { loginAnother, removeAccount, renameAccount, saveCurrent, switchTo } from '../core/switcher';
+import { loginAnother, reconcileActive, removeAccount, renameAccount, saveCurrent, switchTo } from '../core/switcher';
 import { availableUpdate, checkForUpdate } from '../core/update';
 import { refreshUsage } from '../core/usage';
 import type { AutoSwitchMode, RotationStrategy, Settings, StateView } from '../core/types';
 import { listAdapters } from '../sites';
+import { friendlyError } from '../ui/errors';
+import { t } from '../ui/i18n';
 
 const ALARM = 'poll';
 const UPDATE_ALARM = 'update-check';
 const MODES: AutoSwitchMode[] = ['off', 'notify', 'switch'];
 const STRATEGIES: RotationStrategy[] = ['next', 'next-available', 'best'];
+
+const WELCOME_PAGE = 'src/welcome/index.html';
+const BADGE_DEBOUNCE_MS = 150;
 
 const warn = (what: string) => (e: unknown) => console.warn(what, e);
 
@@ -31,6 +38,11 @@ function sanitize(patch: Partial<Settings>): Partial<Settings> {
   if (patch.rotationStrategy !== undefined && STRATEGIES.includes(patch.rotationStrategy))
     out.rotationStrategy = patch.rotationStrategy;
   return out;
+}
+
+/** Picks up a login done by hand in the browser, so the active account is right before anything reads it. */
+async function reconcileAll(): Promise<void> {
+  await Promise.all(listAdapters().map((a) => reconcileActive(a).catch(warn('reconcile failed'))));
 }
 
 async function ensureAlarm(force = false): Promise<void> {
@@ -52,13 +64,22 @@ function onWorkerEvent(): void {
 
 export const handlers: Handlers = {
   async getState(): Promise<StateView> {
+    await reconcileAll();
     const s = await loadState();
+    const adapters = listAdapters();
+    // Only a boolean leaves this function; the cookies themselves never do.
+    const live = Object.fromEntries(
+      await Promise.all(
+        adapters.map(async (a) => [a.id, await snapshotCookies(a).then((c) => a.isLoggedIn(c), () => false)] as const),
+      ),
+    );
     return {
-      sites: listAdapters().map((a) => ({ id: a.id, name: a.name, hasUsage: !!a.fetchUsage })),
+      sites: adapters.map((a) => ({ id: a.id, name: a.name, hasUsage: !!a.fetchUsage })),
       accounts: s.accounts.map(toView),
       active: s.active,
       usage: s.usage,
       settings: s.settings,
+      live,
       update: availableUpdate(s.update, chrome.runtime.getManifest().version),
     };
   },
@@ -116,6 +137,7 @@ export async function onAlarm(alarm: chrome.alarms.Alarm): Promise<void> {
   if (alarm.name === UPDATE_ALARM) return checkForUpdate();
   if (alarm.name !== ALARM) return;
   try {
+    await reconcileAll();
     await refreshUsage();
     await runAutoSwitch();
   } catch (e) {
@@ -148,29 +170,50 @@ export async function onCommand(command: string): Promise<void> {
   const iconUrl = chrome.runtime.getURL('icon-128.png');
   try {
     const view = await handlers.switchNext({ siteId: 'claude' });
+    await chrome.notifications.clear('rotated');
     await chrome.notifications.create('rotated', {
       type: 'basic',
       iconUrl,
-      title: 'Claude account switched',
-      message: `Now using ${view.label}`,
+      title: t('bg_switched_title'),
+      message: t('bg_rotated_message', { name: view.label }),
     });
   } catch (e) {
+    await chrome.notifications.clear('rotate-failed');
     await chrome.notifications.create('rotate-failed', {
       type: 'basic',
       iconUrl,
-      title: 'Could not switch Claude account',
-      message: e instanceof Error ? e.message : String(e),
+      title: t('bg_rotateFailed_title'),
+      message: friendlyError(e),
     });
   }
 }
 
+/** First install: show the welcome page. Updates and restarts stay quiet. */
+export function onInstalled(details: chrome.runtime.InstalledDetails): void {
+  if (details.reason === 'install') {
+    void chrome.tabs.create({ url: chrome.runtime.getURL(WELCOME_PAGE) }).catch(warn('welcome page failed'));
+  }
+  onWorkerEvent();
+}
+
+let badgeTimer: ReturnType<typeof setTimeout> | undefined;
+
+/** Re-draws the toolbar badge when stored state changes. Only key names are checked, never the payload. */
+export function onStorageChanged(changes: Record<string, unknown>, area: string): void {
+  if (area !== 'local' || !('state' in changes)) return;
+  clearTimeout(badgeTimer);
+  badgeTimer = setTimeout(() => void updateBadge().catch(warn('badge update failed')), BADGE_DEBOUNCE_MS);
+}
+
 chrome.runtime.onMessage.addListener(onMessage);
 chrome.commands.onCommand.addListener((c) => void onCommand(c));
-chrome.runtime.onInstalled.addListener(onWorkerEvent);
+chrome.runtime.onInstalled.addListener(onInstalled);
 chrome.runtime.onStartup.addListener(onWorkerEvent);
+chrome.storage.onChanged.addListener(onStorageChanged);
 chrome.alarms.onAlarm.addListener((a) => void onAlarm(a));
 chrome.notifications.onButtonClicked.addListener((id, i) => void onNotificationButton(id, i));
 void ensureAlarm().catch(warn('alarm setup failed'));
 void ensureUpdateAlarm().catch(warn('update alarm setup failed'));
+void updateBadge().catch(warn('badge update failed'));
 // Session rules survive a worker restart; drop a cookie rule left behind by a killed cookieFetch.
 void chrome.declarativeNetRequest.updateSessionRules({ removeRuleIds: [RULE_ID] }).catch(warn('rule cleanup failed'));

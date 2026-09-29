@@ -11,14 +11,26 @@ A Chrome extension to switch between several Claude accounts in one click, and t
   <img src="docs/popup-dark.png" alt="The same popup in the dark theme" width="300">
 </p>
 
+<p align="center">
+  <img src="docs/popup-empty.png" alt="Empty popup with steps to add the first account" width="300">
+</p>
+
 ## Features
 
-- **Save accounts** and **switch** between them without logging out. Open Claude tabs reload as the new account.
+- **Save accounts** and **switch** between them by clicking a row, without logging out.
+  Open Claude tabs reload as the new account.
+- **Toolbar badge** with the active account's usage, the higher of the 5-hour and weekly percent (for example `93%`). It turns amber, then red, near the limit.
 - **Usage bars** for every account (5-hour and weekly), with reset times. Refreshed every few minutes.
+- **Row menu** (the <kbd>⋯</kbd> button) to rename or remove an account, with an inline confirmation.
 - **Switch to next** (button or <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>S</kbd>) with three strategies:
   most quota left, next available, or next in order.
 - **Auto-switch**: notify you (or switch for you) when the active account gets near its limit.
+- **Toasts** confirm each action. Errors show as a banner in plain words.
+- **Keyboard**: <kbd>↑</kbd> <kbd>↓</kbd> move between accounts, <kbd>Enter</kbd> switches.
+- **Welcome page** on first install, and an **unsaved-session banner** so you never lose a login.
+- **Settings save automatically** as you change them.
 - **Update notice** in the popup when a new version is released here.
+- **Light and dark theme**, and all texts in `_locales/` so it is ready for translation.
 
 ## Install
 
@@ -42,16 +54,21 @@ Your saved accounts stay. (Removing the extension deletes them.)
 
 ## Use
 
-1. Log in to [claude.ai](https://claude.ai), open the extension and click **Save current session**.
-2. Click **Log in another account**. The extension keeps the first session, clears the login and opens the login page.
-3. Log in with the second account and click **Save current session** again.
-4. Click **Switch** on any account, or **Switch to next**.
+1. Log in to [claude.ai](https://claude.ai), open the extension and click **Save this account**.
+2. Click **Add account** (with several sites, use the arrow next to it to pick the site). The extension keeps the first session,
+   clears the login and opens the login page.
+3. Log in with the second account, open the extension and click **Save** in the banner.
+4. Click any account to switch to it, or use **Switch to next**.
+5. Use the <kbd>⋯</kbd> button on a row to **Rename** or **Remove** it.
 
 Settings (gear icon): usage check interval, near-limit threshold, auto-switch (off / notify / switch),
-cooldown, and the "switch to next" strategy. Change the shortcut at `chrome://extensions/shortcuts`.
+cooldown, and the "switch to next" strategy. Changes are saved as you make them.
+Change the shortcut with **Change shortcut** or at `chrome://extensions/shortcuts`.
 
 <p align="center">
   <img src="docs/settings.png" alt="Settings page" width="520">
+  &nbsp;
+  <img src="docs/welcome.png" alt="Welcome page shown after install" width="520">
 </p>
 
 **Remove** in the popup only makes the extension forget an account. It does not log you out.

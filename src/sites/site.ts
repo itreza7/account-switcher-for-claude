@@ -17,6 +17,11 @@ export interface SiteAdapter {
   cookieFilter(cookie: StoredCookie): boolean;
   /** True when the cookies contain a logged-in session. */
   isLoggedIn(cookies: StoredCookie[]): boolean;
+  /**
+   * The session credential inside these cookies (the value of the 'sessionKey' cookie), or undefined
+   * when there is none. Used only to compare sessions locally without a network call; never leaves the background.
+   */
+  sessionToken(cookies: StoredCookie[]): string | undefined;
   fetchIdentity(fetch: SiteFetch): Promise<AccountIdentity>;
   /** Only sites with plan limits implement this. */
   fetchUsage?(fetch: SiteFetch, identity: AccountIdentity): Promise<Usage>;

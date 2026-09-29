@@ -101,6 +101,7 @@ export const claudeAdapter: SiteAdapter = {
   // getAll({ domain: 'claude.ai' }) also returns subdomain cookies; keep only the claude.ai session ones.
   cookieFilter: (c) => c.domain === 'claude.ai' || c.domain === '.claude.ai',
   isLoggedIn: (cookies) => cookies.some((c) => c.name === 'sessionKey' && c.value !== ''),
+  sessionToken: (cookies) => cookies.find((c) => c.name === 'sessionKey' && c.value !== '')?.value,
   fetchIdentity: (fetch) => identityFromOrigin(fetch, 'https://claude.ai', { withPlan: true }),
   async fetchUsage(fetch, identity): Promise<Usage> {
     if (!identity.orgId) throw new Error('Missing organization id');

@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title data-i18n="welcome_title"></title>
+    <link rel="stylesheet" href="../ui/theme.css" />
+    <link rel="stylesheet" href="./welcome.css" />
+  </head>
+  <body>
+    <main class="page">
+      <header class="hero">
+        <img src="/logo.svg" alt="" width="64" height="64" />
+        <h1 data-i18n="welcome_heading"></h1>
+        <p data-i18n="welcome_subtitle"></p>
+      </header>
+
+      <section aria-labelledby="startTitle">
+        <h2 id="startTitle" data-i18n="welcome_start_title"></h2>
+        <ol class="steps">
+          <li class="card step">
+            <div class="step-top">
+              <span class="step-num tabular" aria-hidden="true">1</span>
+              <span class="step-icon" data-icon="puzzle" data-size="18"></span>
+            </div>
+            <h3 data-i18n="welcome_step1_title"></h3>
+            <p data-i18n="welcome_step1_text"></p>
+          </li>
+          <li class="card step">
+            <div class="step-top">
+              <span class="step-num tabular" aria-hidden="true">2</span>
+              <span class="step-icon" data-icon="logIn" data-size="18"></span>
+            </div>
+            <h3 data-i18n="welcome_step2_title"></h3>
+            <p data-i18n="welcome_step2_text"></p>
+          </li>
+          <li class="card step">
+            <div class="step-top">
+              <span class="step-num tabular" aria-hidden="true">3</span>
+              <span class="step-icon" data-icon="userPlus" data-size="18"></span>
+            </div>
+            <h3 data-i18n="welcome_step3_title"></h3>
+            <p data-i18n="welcome_step3_text"></p>
+          </li>
+        </ol>
+      </section>
+
+      <section aria-labelledby="tipsTitle">
+        <h2 id="tipsTitle" data-i18n="welcome_tips_title"></h2>
+        <ul class="card tips">
+          <li class="tip">
+            <span class="tip-icon" data-icon="keyboard" data-size="18"></span>
+            <div class="tip-body">
+              <h3 data-i18n="welcome_tip_shortcut_title"></h3>
+              <p data-i18n="welcome_tip_shortcut_text"></p>
+              <div id="shortcutSlot" class="tip-extra"></div>
+            </div>
+          </li>
+          <li class="tip">
+            <span class="tip-icon" data-icon="zap" data-size="18"></span>
+            <div class="tip-body">
+              <h3 data-i18n="welcome_tip_auto_title"></h3>
+              <p data-i18n="welcome_tip_auto_text"></p>
+            </div>
+          </li>
+          <li class="tip">
+            <span class="tip-icon" data-icon="shieldCheck" data-size="18"></span>
+            <div class="tip-body">
+              <h3 data-i18n="welcome_tip_privacy_title"></h3>
+              <p data-i18n="common_privacy"></p>
+            </div>
+          </li>
+        </ul>
+      </section>
+
+      <div class="actions">
+        <a class="btn btn-primary btn-lg" href="https://claude.ai" target="_blank" rel="noopener">
+          <span data-i18n="welcome_open_claude"></span><span data-icon="externalLink" data-size="14"></span>
+        </a>
+        <button type="button" id="openSettings" class="btn btn-lg">
+          <span data-icon="settings" data-size="14"></span><span data-i18n="welcome_open_settings"></span>
+        </button>
+      </div>
+
+      <footer class="small-print">
+        <p data-i18n="common_notAffiliated"></p>
+        <p id="terms"></p>
+      </footer>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

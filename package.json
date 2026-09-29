@@ -1,12 +1,13 @@
 {
   "name": "account-switcher-for-claude",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "typecheck": "tsc --noEmit",
+    "icons": "node scripts/build-icons.mjs",
     "test": "vitest run",
     "e2e": "npm run build && node e2e/run.mjs",
     "screenshots": "npm run build && DOCS=1 node e2e/run.mjs",

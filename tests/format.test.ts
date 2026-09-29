@@ -1,10 +1,15 @@
-import { describe, expect, it } from 'vitest';
-import { effectivePct, formatAgo, formatDuration, formatResetsIn, usageLevel } from '../src/popup/format';
+import { beforeEach, describe, expect, it } from 'vitest';
+import { effectivePct, formatAgo, formatDuration, formatResetsIn, formatWindowResets, usageLevel } from '../src/popup/format';
+import { installChromeMock } from './chrome-mock';
 
 const NOW = Date.parse('2026-01-01T12:00:00Z');
 const min = 60_000;
 const hour = 60 * min;
 const day = 24 * hour;
+
+beforeEach(() => {
+  installChromeMock();
+});
 
 describe('formatDuration', () => {
   it('formats ranges', () => {
@@ -25,6 +30,16 @@ describe('formatResetsIn', () => {
     expect(formatResetsIn(new Date(NOW).toISOString(), NOW)).toBe('reset');
     expect(formatResetsIn(new Date(NOW + 2 * hour + 13 * min).toISOString(), NOW)).toBe('resets in 2h 13m');
     expect(formatResetsIn(new Date(NOW + 10_000).toISOString(), NOW)).toBe('resets in <1m');
+  });
+});
+
+describe('formatWindowResets', () => {
+  it('is empty when unknown or past, named when in the future', () => {
+    expect(formatWindowResets(null, NOW)).toBe('');
+    expect(formatWindowResets('garbage', NOW)).toBe('');
+    expect(formatWindowResets(new Date(NOW - 1000).toISOString(), NOW)).toBe('');
+    expect(formatWindowResets(new Date(NOW + 2 * hour + 3 * min).toISOString(), NOW)).toBe('Resets in 2h 3m');
+    expect(formatWindowResets(new Date(NOW + 3 * day + 2 * hour).toISOString(), NOW)).toBe('Resets in 3d 2h');
   });
 });
 

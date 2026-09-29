@@ -1,6 +1,6 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { DEFAULT_SETTINGS, type StoreState } from '../src/core/types';
-import { installChromeMock } from './chrome-mock';
+import { installChromeMock, makeCookie } from './chrome-mock';
 
 const sw = {
   saveCurrent: vi.fn(),
@@ -9,6 +9,7 @@ const sw = {
   renameAccount: vi.fn(),
   removeAccount: vi.fn(),
   withSwitchLock: vi.fn(),
+  reconcileActive: vi.fn(async (_adapter: unknown) => {}),
 };
 vi.mock('../src/core/switcher', () => ({
   saveCurrent: (...a: unknown[]) => sw.saveCurrent(...a),
@@ -17,13 +18,19 @@ vi.mock('../src/core/switcher', () => ({
   renameAccount: (...a: unknown[]) => sw.renameAccount(...a),
   removeAccount: (...a: unknown[]) => sw.removeAccount(...a),
   withSwitchLock: (fn: () => unknown) => sw.withSwitchLock(fn),
+  reconcileActive: (a: unknown) => sw.reconcileActive(a),
 }));
 const refreshUsage = vi.fn(async (_id?: string) => {});
 vi.mock('../src/core/usage', () => ({ refreshUsage: (id?: string) => refreshUsage(id) }));
 const runAutoSwitch = vi.fn(async () => {});
 vi.mock('../src/core/autoswitch', () => ({ runAutoSwitch: () => runAutoSwitch() }));
 const switchNext = vi.fn(async (_siteId: string): Promise<unknown> => ({ id: 'n', label: 'Next one' }));
-vi.mock('../src/core/rotation', () => ({ switchNext: (siteId: string) => switchNext(siteId) }));
+vi.mock('../src/core/rotation', async (orig) => ({
+  ...(await orig<typeof import('../src/core/rotation')>()),
+  switchNext: (siteId: string) => switchNext(siteId),
+}));
+const updateBadge = vi.fn(async () => {});
+vi.mock('../src/core/badge', () => ({ updateBadge: () => updateBadge() }));
 const checkForUpdate = vi.fn(async () => {});
 vi.mock('../src/core/update', async (orig) => ({
   ...(await orig<typeof import('../src/core/update')>()),
@@ -72,6 +79,55 @@ describe('listeners', () => {
   });
 });
 
+describe('welcome page', () => {
+  const WELCOME = 'chrome-extension://test-extension-id/src/welcome/index.html';
+
+  it('opens on first install only', async () => {
+    bg.onInstalled({ reason: 'install' });
+    expect(mock.chrome.tabs.create).toHaveBeenCalledWith({ url: WELCOME });
+    mock.chrome.tabs.create.mockClear();
+    bg.onInstalled({ reason: 'update', previousVersion: '0.0.9' });
+    bg.onInstalled({ reason: 'chrome_update' });
+    expect(mock.chrome.tabs.create).not.toHaveBeenCalled();
+  });
+
+  it('is what the onInstalled listener runs, and still sets up alarms', async () => {
+    const listener = mock.chrome.runtime.onInstalled.addListener.mock.calls[0]![0] as typeof bg.onInstalled;
+    mock.state.alarms = {};
+    listener({ reason: 'update', previousVersion: '0.0.9' });
+    await vi.waitFor(() => expect(mock.state.alarms.poll).toBeDefined());
+    expect(mock.chrome.tabs.create).not.toHaveBeenCalled();
+  });
+});
+
+describe('toolbar badge', () => {
+  afterEach(() => vi.useRealTimers());
+
+  it('draws once at start', () => {
+    expect(updateBadge).toHaveBeenCalledTimes(1);
+  });
+
+  it('redraws once, debounced, when the state key changes in local storage', async () => {
+    vi.useFakeTimers();
+    updateBadge.mockClear();
+    const listener = mock.chrome.storage.onChanged.addListener.mock.calls[0]![0] as typeof bg.onStorageChanged;
+    listener({ state: {} }, 'local');
+    listener({ state: {} }, 'local');
+    expect(updateBadge).not.toHaveBeenCalled();
+    await vi.advanceTimersByTimeAsync(200);
+    expect(updateBadge).toHaveBeenCalledTimes(1);
+  });
+
+  it('ignores other keys and other areas', async () => {
+    vi.useFakeTimers();
+    updateBadge.mockClear();
+    bg.onStorageChanged({ other: {} }, 'local');
+    bg.onStorageChanged({ state: {} }, 'sync');
+    await vi.advanceTimersByTimeAsync(500);
+    expect(updateBadge).not.toHaveBeenCalled();
+  });
+});
+
 describe('onMessage', () => {
   it('rejects a foreign sender id, a content-script/web sender url, and a missing url', async () => {
     for (const sender of [
@@ -103,6 +159,28 @@ describe('onMessage', () => {
     expect(r.data.active).toEqual({ claude: 'a' });
     expect(r.data.settings).toEqual(DEFAULT_SETTINGS);
     expect(r.data.update).toBeNull();
+  });
+
+  it('getState reports live per site from the session cookie and never leaks cookie values', async () => {
+    const off = (await call({ type: 'getState' })).res as { data: { live: Record<string, boolean> } };
+    expect(off.data.live.claude).toBe(false);
+
+    mock.state.cookies = [makeCookie({ name: 'sessionKey', domain: '.claude.ai', value: 'sk-secret-value-123' })];
+    const on = (await call({ type: 'getState' })).res as { data: { live: Record<string, boolean> } };
+    expect(on.data.live.claude).toBe(true);
+    expect(JSON.stringify(on)).not.toContain('sk-secret-value-123');
+  });
+
+  it('getState reconciles the active account for every site before reading state', async () => {
+    await call({ type: 'getState' });
+    expect(sw.reconcileActive.mock.calls.map((c) => (c[0] as { id: string }).id).sort()).toEqual(['claude', 'console']);
+  });
+
+  it('getState still answers when reconciling fails', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    sw.reconcileActive.mockRejectedValueOnce(new Error('x'));
+    expect(((await call({ type: 'getState' })).res as { ok: boolean }).ok).toBe(true);
+    warn.mockRestore();
   });
 
   it('getState offers an update only when the release is newer than the installed 0.1.0', async () => {
@@ -183,13 +261,24 @@ describe('keyboard shortcut', () => {
   it('switch-next rotates Claude and notifies the new account', async () => {
     await bg.onCommand('switch-next');
     expect(switchNext).toHaveBeenCalledWith('claude');
-    expect(mock.state.notifications.rotated?.message).toBe('Now using Next one');
+    expect(mock.state.notifications.rotated).toMatchObject({ title: 'Claude account switched', message: 'Now using Next one' });
+  });
+
+  it('clears the previous notification first so a repeat press shows again', async () => {
+    await bg.onCommand('switch-next');
+    expect(mock.chrome.notifications.clear).toHaveBeenCalledWith('rotated');
+    switchNext.mockRejectedValueOnce(new Error('Account not found'));
+    await bg.onCommand('switch-next');
+    expect(mock.chrome.notifications.clear).toHaveBeenCalledWith('rotate-failed');
+    const clearOrder = mock.chrome.notifications.clear.mock.invocationCallOrder[0]!;
+    expect(clearOrder).toBeLessThan(mock.chrome.notifications.create.mock.invocationCallOrder[0]!);
   });
 
   it('shows the error when rotation fails', async () => {
     switchNext.mockRejectedValueOnce(new Error('Save at least two accounts first'));
     await bg.onCommand('switch-next');
-    expect(mock.state.notifications['rotate-failed']?.message).toBe('Save at least two accounts first');
+    expect(mock.state.notifications['rotate-failed']?.title).toBe('Could not switch Claude account');
+    expect(mock.state.notifications['rotate-failed']?.message).toBe('Save at least two accounts to switch between them.');
   });
 
   it('ignores other commands', async () => {
@@ -211,6 +300,8 @@ describe('alarm', () => {
     await bg.onAlarm({ name: 'poll', scheduledTime: 0, persistAcrossSessions: false });
     expect(refreshUsage).toHaveBeenCalledWith(undefined);
     expect(runAutoSwitch).toHaveBeenCalledTimes(1);
+    expect(sw.reconcileActive).toHaveBeenCalledTimes(2);
+    expect(sw.reconcileActive.mock.invocationCallOrder[0]!).toBeLessThan(refreshUsage.mock.invocationCallOrder[0]!);
   });
 
   it('poll errors are caught', async () => {

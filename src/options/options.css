@@ -1,0 +1,329 @@
+/* Settings page. Tokens and shared components come from ../ui/theme.css. */
+
+body {
+  background: var(--bg-subtle);
+}
+
+[hidden] {
+  display: none !important;
+}
+
+.page {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: var(--sp-8) var(--sp-4);
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-6);
+}
+
+.page-header img {
+  flex-shrink: 0;
+  border-radius: var(--r-sm);
+}
+
+.page-header h1 {
+  font-size: var(--fs-xl);
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.page-header p {
+  font-size: var(--fs-sm);
+}
+
+#loadError {
+  margin-bottom: var(--sp-4);
+}
+
+/* ---------- Cards ---------- */
+
+.cards {
+  display: grid;
+  gap: var(--sp-4);
+}
+
+.cards.is-failed {
+  opacity: 0.5;
+}
+
+.cards .card {
+  display: grid;
+  gap: var(--sp-4);
+  padding: var(--sp-5);
+}
+
+.card h2 {
+  font-size: var(--fs-lg);
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.field {
+  display: grid;
+  gap: var(--sp-2);
+}
+
+.card > .field + .field {
+  padding-top: var(--sp-4);
+  border-top: 1px solid var(--border);
+}
+
+.field-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+}
+
+.field-head label {
+  font-weight: 500;
+}
+
+.help {
+  color: var(--text-2);
+  font-size: var(--fs-sm);
+}
+
+.value {
+  font-weight: 600;
+}
+
+input[type='range'] {
+  width: 100%;
+  margin: var(--sp-1) 0;
+}
+
+/* ---------- Stepper ---------- */
+
+.stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+}
+
+.stepper .btn-icon {
+  border-color: var(--border-strong);
+  background: var(--surface);
+  font-size: var(--fs-lg);
+  line-height: 1;
+}
+
+.stepper .btn-icon:hover:not(:disabled) {
+  background: var(--surface-2);
+}
+
+.stepper .input {
+  width: 56px;
+  text-align: center;
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+.stepper input::-webkit-inner-spin-button,
+.stepper input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.unit {
+  margin-inline-start: var(--sp-1);
+  min-width: 24px;
+}
+
+/* ---------- Segmented (auto-switch mode) ---------- */
+
+#autoSwitchMode {
+  justify-self: start;
+}
+
+.segmented > [role='radio']:focus-visible {
+  outline-offset: 0;
+}
+
+/* ---------- Strategy choices ---------- */
+
+.choices {
+  display: grid;
+  gap: var(--sp-2);
+}
+
+.choice {
+  display: grid;
+  grid-template-columns: 16px 1fr;
+  align-items: start;
+  gap: var(--sp-3);
+  width: 100%;
+  padding: var(--sp-3) var(--sp-4);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  text-align: start;
+  cursor: pointer;
+  transition:
+    background var(--dur) var(--ease),
+    border-color var(--dur) var(--ease),
+    box-shadow var(--dur) var(--ease);
+}
+
+.choice:hover {
+  background: var(--surface-2);
+}
+
+.choice:focus-visible {
+  border-radius: var(--r-md);
+}
+
+.choice[aria-checked='true'] {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+.choice-dot {
+  position: relative;
+  width: 16px;
+  height: 16px;
+  margin-top: 2px;
+  border: 1.5px solid var(--border-strong);
+  border-radius: 50%;
+  transition: border-color var(--dur) var(--ease);
+}
+
+.choice-dot::after {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  border-radius: 50%;
+  background: var(--accent);
+  transform: scale(0);
+  transition: transform var(--dur) var(--ease);
+}
+
+.choice[aria-checked='true'] .choice-dot {
+  border-color: var(--accent);
+}
+
+.choice[aria-checked='true'] .choice-dot::after {
+  transform: scale(1);
+}
+
+.choice-text {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.choice-title {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  font-weight: 600;
+}
+
+.choice-desc {
+  color: var(--text-2);
+  font-size: var(--fs-sm);
+}
+
+/* ---------- Shortcut ---------- */
+
+.shortcut-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--sp-3);
+}
+
+.shortcut-info {
+  display: grid;
+  gap: var(--sp-1);
+}
+
+.shortcut-keys {
+  min-height: 20px;
+}
+
+/* ---------- Privacy ---------- */
+
+.privacy {
+  display: flex;
+  gap: var(--sp-3);
+  color: var(--text-2);
+}
+
+.privacy-text {
+  display: grid;
+  gap: var(--sp-2);
+}
+
+.privacy-note {
+  font-size: var(--fs-sm);
+}
+
+.privacy-icon {
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: var(--ok);
+}
+
+/* ---------- Footer ---------- */
+
+.footer {
+  margin-top: var(--sp-6);
+  display: grid;
+  gap: var(--sp-1);
+  text-align: center;
+  font-size: var(--fs-sm);
+  color: var(--text-3);
+}
+
+.footer-links {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: var(--sp-1) var(--sp-2);
+}
+
+.footer a,
+.link-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--text-2);
+  text-decoration: none;
+}
+
+.footer a:hover,
+.link-btn:hover {
+  color: var(--text);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.link-btn {
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+/* ---------- Toasts ---------- */
+
+.toast-region {
+  left: 50%;
+  right: auto;
+  width: min(420px, calc(100% - 2 * var(--sp-3)));
+  transform: translateX(-50%);
+}
+
+#cooldownField {
+  padding-top: var(--sp-4);
+  border-top: 1px solid var(--border);
+}

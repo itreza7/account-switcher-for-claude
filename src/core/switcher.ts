@@ -4,7 +4,7 @@ import type { SiteAdapter } from '../sites/site';
 import { clearCookies, restoreCookies, snapshotCookies } from './cookies';
 import { createLock } from './lock';
 import { getAccount, loadState, mutate, toView } from './storage';
-import type { AccountIdentity, AccountView, SiteId } from './types';
+import type { AccountIdentity, AccountView, SiteId, StoreState } from './types';
 
 const lock = createLock();
 
@@ -31,7 +31,13 @@ export async function syncLiveSession(adapter: SiteAdapter): Promise<string | nu
   }
   const state = await loadState();
   const match = state.accounts.find((a) => a.siteId === adapter.id && a.identity.key === identity.key);
-  if (!match) throw new Error(`The current ${adapter.name} session is not saved. Save it first.`);
+  if (!match) {
+    // The browser is on an account we don't know, so no saved account is active any more.
+    await mutate((d) => {
+      d.active[adapter.id] = null;
+    });
+    throw new Error(`The current ${adapter.name} session is not saved. Save it first.`);
+  }
   await mutate((d) => {
     const a = d.accounts.find((x) => x.id === match.id);
     if (!a) return;
@@ -41,6 +47,27 @@ export async function syncLiveSession(adapter: SiteAdapter): Promise<string | nu
     d.active[adapter.id] = a.id;
   });
   return match.id;
+}
+
+/**
+ * Re-points the active account at whichever saved account owns the live session, with no network
+ * call: the live session token is compared with the saved ones. A logged-out browser leaves the
+ * active account alone (loginAnother and the user's next login decide); an unknown token clears it.
+ */
+export async function reconcileActive(adapter: SiteAdapter): Promise<void> {
+  const live = adapter.sessionToken(await snapshotCookies(adapter));
+  if (live === undefined) return;
+  const target = (s: StoreState): string | null => {
+    const active = s.accounts.find((a) => a.id === s.active[adapter.id]);
+    if (active && adapter.sessionToken(active.cookies) === live) return active.id;
+    return s.accounts.find((a) => a.siteId === adapter.id && adapter.sessionToken(a.cookies) === live)?.id ?? null;
+  };
+  // Most calls change nothing, so skip the write (and the storage event it fires).
+  const before = await loadState();
+  if (target(before) === (before.active[adapter.id] ?? null)) return;
+  await mutate((d) => {
+    d.active[adapter.id] = target(d);
+  });
 }
 
 async function reloadTabs(adapter: SiteAdapter): Promise<void> {

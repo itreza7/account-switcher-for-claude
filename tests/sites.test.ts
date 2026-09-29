@@ -42,6 +42,18 @@ describe('claude adapter basics', () => {
   });
 });
 
+describe('sessionToken', () => {
+  it.each([
+    ['claude', claudeAdapter, '.claude.ai'],
+    ['console', consoleAdapter, '.claude.com'],
+  ])('%s returns the sessionKey value, or undefined', (_n, adapter, domain) => {
+    const cookies = [makeCookie({ name: 'other', domain, value: 'x' }), makeCookie({ name: 'sessionKey', domain, value: 'tok' })];
+    expect(adapter.sessionToken(cookies)).toBe('tok');
+    expect(adapter.sessionToken([makeCookie({ name: 'sessionKey', domain, value: '' })])).toBeUndefined();
+    expect(adapter.sessionToken(cookies.slice(0, 1))).toBeUndefined();
+  });
+});
+
 describe('claude fetchIdentity', () => {
   const ORGS = 'https://claude.ai/api/organizations';
   const ACC = 'https://claude.ai/api/account';

@@ -41,7 +41,7 @@ describe('decide', () => {
       siteId: 'claude',
       from: 'a',
       to: 'b',
-      reason: '5-hour limit at 95%',
+      reason: { window: 'fiveHour', percent: 95 },
     });
   });
 
@@ -72,7 +72,7 @@ describe('decide', () => {
 
   it('weekly limit reason', () => {
     const d = decide(input([{ id: 'a', usage: usage(10, 95) }, cool]));
-    expect(d).toMatchObject({ action: 'switch', reason: 'weekly limit at 95%' });
+    expect(d).toMatchObject({ action: 'switch', reason: { window: 'weekly', percent: 95 } });
   });
 
   it('window whose reset is in the past counts as 0 (active not near-limit)', () => {
@@ -177,7 +177,8 @@ describe('runAutoSwitch', () => {
     expect(switchTo).toHaveBeenCalledWith('b');
     const notes = Object.values(mock.state.notifications);
     expect(notes).toHaveLength(1);
-    expect(notes[0]?.message).toBe('Switched to Personal: 5-hour limit at 95%');
+    expect(notes[0]?.message).toBe('Switched to Personal. 5-hour limit at 95%.')
+    expect(notes[0]?.title).toBe('Claude account switched');
     expect(notes[0]?.iconUrl).toBe('chrome-extension://test-extension-id/icon-128.png');
     expect((mock.state.storage.state as { autoSwitch: { lastActionAt: number } }).autoSwitch.lastActionAt).toBe(NOW);
   });
@@ -188,8 +189,7 @@ describe('runAutoSwitch', () => {
     expect(switchTo).not.toHaveBeenCalled();
     const n = mock.state.notifications['autoswitch:b'];
     expect(n?.title).toBe('Claude limit near');
-    expect(n?.message).toContain('5-hour limit at 95%');
-    expect(n?.message).toContain('Personal');
+    expect(n?.message).toBe('5-hour limit at 95%. Switch to Personal?');
     expect(n?.buttons).toEqual([{ title: 'Switch now' }]);
     expect((mock.state.storage.state as { autoSwitch: { lastActionAt: number } }).autoSwitch.lastActionAt).toBe(NOW);
   });

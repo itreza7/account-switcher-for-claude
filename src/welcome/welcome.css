@@ -1,0 +1,182 @@
+/* Welcome page. Tokens and shared components come from ../ui/theme.css. */
+
+body {
+  background: var(--bg-subtle);
+}
+
+.page {
+  display: grid;
+  gap: var(--sp-8);
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 56px var(--sp-4) var(--sp-8);
+}
+
+/* ---------- Hero ---------- */
+
+.hero {
+  display: grid;
+  justify-items: center;
+  gap: var(--sp-3);
+  text-align: center;
+}
+
+.hero img {
+  margin-bottom: var(--sp-2);
+  border-radius: var(--r-md);
+}
+
+.hero h1 {
+  font-size: var(--fs-2xl);
+  font-weight: 600;
+  line-height: 1.25;
+  text-wrap: balance;
+}
+
+.hero p {
+  max-width: 520px;
+  color: var(--text-2);
+  font-size: var(--fs-lg);
+  text-wrap: balance;
+}
+
+section > h2 {
+  margin-bottom: var(--sp-3);
+  font-size: var(--fs-lg);
+  font-weight: 600;
+}
+
+h3 {
+  font-size: var(--fs-md);
+  font-weight: 600;
+}
+
+/* ---------- Steps ---------- */
+
+.steps {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--sp-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.step {
+  display: grid;
+  align-content: start;
+  gap: var(--sp-2);
+  padding: var(--sp-4);
+}
+
+.step-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--sp-1);
+}
+
+.step-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent-soft-fg);
+  font-weight: 600;
+}
+
+.step-icon {
+  color: var(--text-3);
+}
+
+.step p,
+.tip p {
+  color: var(--text-2);
+}
+
+/* ---------- Tips ---------- */
+
+.tips {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tip {
+  display: flex;
+  gap: var(--sp-3);
+  padding: var(--sp-4);
+}
+
+.tip + .tip {
+  border-top: 1px solid var(--border);
+}
+
+.tip-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+  color: var(--text-2);
+}
+
+.tip-body {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.tip-extra {
+  margin-top: var(--sp-2);
+}
+
+.tip-extra:empty {
+  display: none;
+}
+
+/* ---------- Actions and small print ---------- */
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--sp-3);
+}
+
+.btn-lg {
+  height: 36px;
+  padding: 0 var(--sp-5);
+  font-size: var(--fs-lg);
+  text-decoration: none;
+}
+
+a.btn-primary:hover {
+  color: var(--accent-fg);
+}
+
+.small-print {
+  display: grid;
+  gap: var(--sp-1);
+  text-align: center;
+  color: var(--text-3);
+  font-size: var(--fs-sm);
+}
+
+/* ---------- Narrow screens ---------- */
+
+@media (max-width: 600px) {
+  .page {
+    padding-top: var(--sp-8);
+  }
+
+  .steps {
+    grid-template-columns: 1fr;
+  }
+}

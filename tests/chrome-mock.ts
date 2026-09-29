@@ -1,4 +1,10 @@
 import { vi } from 'vitest';
+import raw from '../public/_locales/en/messages.json' with { type: 'json' };
+
+/** The real English catalog, keyed case-insensitively like chrome.i18n. */
+const catalog: Record<string, string> = Object.fromEntries(
+  Object.entries(raw as Record<string, { message: string }>).map(([k, v]) => [k.toLowerCase(), v.message]),
+);
 
 type Cookie = chrome.cookies.Cookie;
 
@@ -20,6 +26,7 @@ export function installChromeMock() {
     sessionRules: [] as chrome.declarativeNetRequest.Rule[],
     alarms: {} as Record<string, chrome.alarms.AlarmCreateInfo>,
     notifications: {} as Record<string, chrome.notifications.NotificationOptions>,
+    badge: { text: '', color: '' as string | number[], textColor: '' as string | number[], title: '' },
   };
 
   const clone = <T>(v: T): T => (v === undefined ? v : structuredClone(v));
@@ -128,7 +135,29 @@ export function installChromeMock() {
       get: vi.fn(async (name: string) => (state.alarms[name] ? { name, ...state.alarms[name] } : undefined)),
       onAlarm: { addListener: vi.fn() },
     },
-    commands: { onCommand: { addListener: vi.fn() } },
+    commands: { onCommand: { addListener: vi.fn() }, getAll: vi.fn(async () => []) },
+    i18n: {
+      getMessage: vi.fn((key: string) => {
+        if (key === '@@bidi_dir') return 'ltr';
+        if (key === '@@ui_locale') return 'en';
+        return catalog[key.toLowerCase()] ?? '';
+      }),
+      getUILanguage: vi.fn(() => 'en'),
+    },
+    action: {
+      setBadgeText: vi.fn(async ({ text }: { text: string }) => {
+        state.badge.text = text;
+      }),
+      setBadgeBackgroundColor: vi.fn(async ({ color }: { color: string | number[] }) => {
+        state.badge.color = color;
+      }),
+      setBadgeTextColor: vi.fn(async ({ color }: { color: string | number[] }) => {
+        state.badge.textColor = color;
+      }),
+      setTitle: vi.fn(async ({ title }: { title: string }) => {
+        state.badge.title = title;
+      }),
+    },
     notifications: {
       create: vi.fn(async (id: string, opts: chrome.notifications.NotificationOptions) => {
         state.notifications[id] = opts;

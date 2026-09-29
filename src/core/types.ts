@@ -97,6 +97,8 @@ export interface StateView {
   active: Record<SiteId, string | null>;
   usage: Record<string, UsageEntry>;
   settings: Settings;
+  /** Per site: true when the browser currently holds a logged-in session (saved or not). */
+  live: Record<SiteId, boolean>;
   /** Set only when a newer release than the installed version exists. */
   update: { version: string; url: string } | null;
 }

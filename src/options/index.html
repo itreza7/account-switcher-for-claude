@@ -3,59 +3,154 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Account Switcher for Claude - Settings</title>
-    <link rel="stylesheet" href="../popup/popup.css" />
+    <title data-i18n="options_title"></title>
+    <link rel="stylesheet" href="../ui/theme.css" />
+    <link rel="stylesheet" href="./options.css" />
   </head>
-  <body class="options">
-    <h1>Account Switcher for Claude settings</h1>
-    <form id="form">
-      <div class="field">
-        <label for="pollMinutes">Usage check interval (minutes)</label>
-        <input id="pollMinutes" type="number" min="1" max="60" step="1" required />
-        <span class="muted">1 to 60.</span>
+  <body>
+    <div class="page">
+      <header class="page-header">
+        <img src="/logo.svg" alt="" width="32" height="32" />
+        <div>
+          <h1 data-i18n="common_settings"></h1>
+          <p class="subtle" data-i18n="extName"></p>
+        </div>
+      </header>
+
+      <div id="loadError" class="banner banner-error" role="alert" hidden>
+        <span data-icon="circleAlert"></span>
+        <div class="banner-body" id="loadErrorText"></div>
       </div>
-      <div class="field">
-        <label for="threshold">Near-limit threshold (%)</label>
-        <input id="threshold" type="number" min="50" max="100" step="1" required />
-        <span class="muted">An account at or above this usage counts as near its limit. 50 to 100.</span>
-      </div>
-      <div class="field">
-        <label for="autoSwitchMode">Auto-switch</label>
-        <select id="autoSwitchMode">
-          <option value="off">Off</option>
-          <option value="notify">Notify only</option>
-          <option value="switch">Switch automatically</option>
-        </select>
-        <span class="muted">
-          Switching automatically reloads open Claude tabs and can cut a reply that is still running.
-        </span>
-      </div>
-      <div class="field">
-        <label for="rotationStrategy">Switch to next</label>
-        <select id="rotationStrategy">
-          <option value="best">Most quota left</option>
-          <option value="next-available">Next available (skip accounts near the limit)</option>
-          <option value="next">Next in order</option>
-        </select>
-        <span class="muted">
-          Used by the "Switch to next" button, the keyboard shortcut<span id="shortcut"></span>, and auto-switch.
-          Auto-switch never picks an account near its limit, even with "Next in order".
-        </span>
-      </div>
-      <div class="field">
-        <label for="cooldownMinutes">Cooldown (minutes)</label>
-        <input id="cooldownMinutes" type="number" min="0" max="240" step="1" required />
-        <span class="muted">Minimum wait between automatic actions. 0 to 240.</span>
-      </div>
-      <div class="actions">
-        <button type="submit" class="primary" id="save">Save</button>
-        <span id="status" class="status" role="status"></span>
-      </div>
-    </form>
-    <div class="note">
-      <strong>Security.</strong> Saved sessions are stored only on this computer, in the extension's local storage.
-      They are never synced or sent anywhere. Anyone with access to this browser profile can use them.
+
+      <main id="cards" class="cards" inert>
+        <section class="card" aria-labelledby="usageTitle">
+          <h2 id="usageTitle" data-i18n="options_usage_title"></h2>
+          <div class="field">
+            <div class="field-head">
+              <label for="pollMinutes" data-i18n="options_poll_label"></label>
+              <div class="stepper" data-stepper>
+                <button type="button" class="btn btn-icon" data-step="-1" data-i18n-aria-label="options_decrease">&minus;</button>
+                <input id="pollMinutes" class="input tabular" type="number" min="1" max="60" step="1" inputmode="numeric" aria-describedby="pollHelp" />
+                <button type="button" class="btn btn-icon" data-step="1" data-i18n-aria-label="options_increase">+</button>
+                <span class="unit subtle" data-i18n="options_unit_min"></span>
+              </div>
+            </div>
+            <p id="pollHelp" class="help" data-i18n="options_poll_help"></p>
+          </div>
+          <div class="field">
+            <div class="field-head">
+              <label for="threshold" data-i18n="options_threshold_label"></label>
+              <output id="thresholdValue" class="value tabular" for="threshold"></output>
+            </div>
+            <input id="threshold" type="range" min="50" max="100" step="1" aria-describedby="thresholdHelp" />
+            <p id="thresholdHelp" class="help" data-i18n="options_threshold_help"></p>
+          </div>
+        </section>
+
+        <section class="card" aria-labelledby="autoTitle">
+          <h2 id="autoTitle" data-i18n="options_auto_title"></h2>
+          <div class="field">
+            <div id="autoSwitchMode" class="segmented" role="radiogroup" aria-labelledby="autoTitle" aria-describedby="modeDesc">
+              <button type="button" role="radio" aria-checked="false" data-value="off" data-i18n="common_mode_off"></button>
+              <button type="button" role="radio" aria-checked="false" data-value="notify" data-i18n="common_mode_notify"></button>
+              <button type="button" role="radio" aria-checked="false" data-value="switch" data-i18n="common_mode_switch"></button>
+            </div>
+            <p id="modeDesc" class="help"></p>
+          </div>
+          <div id="switchWarn" class="banner banner-warn" hidden>
+            <span data-icon="circleAlert"></span>
+            <div class="banner-body" data-i18n="options_auto_warn"></div>
+          </div>
+          <div id="cooldownField" class="field" hidden>
+            <div class="field-head">
+              <label for="cooldownMinutes" data-i18n="options_cooldown_label"></label>
+              <div class="stepper" data-stepper>
+                <button type="button" class="btn btn-icon" data-step="-1" data-i18n-aria-label="options_decrease">&minus;</button>
+                <input id="cooldownMinutes" class="input tabular" type="number" min="0" max="240" step="1" inputmode="numeric" aria-describedby="cooldownHelp" />
+                <button type="button" class="btn btn-icon" data-step="1" data-i18n-aria-label="options_increase">+</button>
+                <span class="unit subtle" data-i18n="options_unit_min"></span>
+              </div>
+            </div>
+            <p id="cooldownHelp" class="help" data-i18n="options_cooldown_help"></p>
+          </div>
+        </section>
+
+        <section class="card" aria-labelledby="rotationTitle">
+          <h2 id="rotationTitle" data-i18n="options_rotation_title"></h2>
+          <div id="rotationStrategy" class="choices" role="radiogroup" aria-labelledby="rotationTitle">
+            <button type="button" class="choice" role="radio" aria-checked="false" data-value="best">
+              <span class="choice-dot" aria-hidden="true"></span>
+              <span class="choice-text">
+                <span class="choice-title">
+                  <span data-i18n="common_strategy_best"></span>
+                  <span class="pill pill-accent" data-i18n="options_recommended"></span>
+                </span>
+                <span class="choice-desc" data-i18n="options_strategy_best_desc"></span>
+              </span>
+            </button>
+            <button type="button" class="choice" role="radio" aria-checked="false" data-value="next-available">
+              <span class="choice-dot" aria-hidden="true"></span>
+              <span class="choice-text">
+                <span class="choice-title" data-i18n="common_strategy_nextAvailable"></span>
+                <span class="choice-desc" data-i18n="options_strategy_nextAvailable_desc"></span>
+              </span>
+            </button>
+            <button type="button" class="choice" role="radio" aria-checked="false" data-value="next">
+              <span class="choice-dot" aria-hidden="true"></span>
+              <span class="choice-text">
+                <span class="choice-title" data-i18n="common_strategy_next"></span>
+                <span class="choice-desc" data-i18n="options_strategy_next_desc"></span>
+              </span>
+            </button>
+          </div>
+          <p class="help" data-i18n="options_rotation_note"></p>
+        </section>
+
+        <section class="card" aria-labelledby="shortcutTitle">
+          <h2 id="shortcutTitle" data-i18n="options_shortcut_title"></h2>
+          <div class="shortcut-row">
+            <div class="shortcut-info">
+              <div id="shortcutKeys" class="shortcut-keys"></div>
+              <p class="help" data-i18n="options_shortcut_help"></p>
+            </div>
+            <button type="button" id="changeShortcut" class="btn">
+              <span data-icon="keyboard"></span>
+              <span data-i18n="options_shortcut_change"></span>
+            </button>
+          </div>
+        </section>
+
+        <section class="card" aria-labelledby="privacyTitle">
+          <h2 id="privacyTitle" data-i18n="options_privacy_title"></h2>
+          <div class="privacy">
+            <span class="privacy-icon" data-icon="shieldCheck" data-size="20"></span>
+            <div class="privacy-text">
+              <p data-i18n="common_privacy"></p>
+              <p class="privacy-note subtle" data-i18n="common_updateCheck"></p>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer class="footer">
+        <p class="footer-links">
+          <span id="version" class="tabular"></span>
+          <span aria-hidden="true">&middot;</span>
+          <a id="homepage" href="https://github.com/itreza7/account-switcher-for-claude" target="_blank" rel="noopener">
+            <span data-i18n="options_github"></span><span data-icon="externalLink" data-size="12"></span>
+          </a>
+          <span aria-hidden="true">&middot;</span>
+          <a href="https://github.com/itreza7/account-switcher-for-claude/issues/new" target="_blank" rel="noopener">
+            <span data-i18n="options_report"></span><span data-icon="externalLink" data-size="12"></span>
+          </a>
+          <span aria-hidden="true">&middot;</span>
+          <button type="button" id="showWelcome" class="link-btn" data-i18n="options_showWelcome"></button>
+        </p>
+        <p class="footer-small" data-i18n="common_notAffiliated"></p>
+      </footer>
     </div>
+
+    <div id="toasts" class="toast-region" role="status" aria-live="polite"></div>
     <script type="module" src="./main.ts"></script>
   </body>
 </html>
