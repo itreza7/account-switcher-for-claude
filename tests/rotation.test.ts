@@ -113,6 +113,7 @@ describe('switchNext', () => {
       usage: Object.fromEntries(Object.entries(usageMap).map(([k, u]) => [k, { usage: u, lastAttemptAt: NOW }])),
       settings: { ...DEFAULT_SETTINGS, rotationStrategy: strategy },
       autoSwitch: { lastActionAt: null },
+      update: { latestVersion: null, url: null, checkedAt: null },
     };
     mock.state.storage.state = state;
   };

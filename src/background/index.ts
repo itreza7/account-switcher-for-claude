@@ -4,11 +4,13 @@ import { switchNext } from '../core/rotation';
 import type { Handlers, MessageType, Request, Response } from '../core/messages';
 import { getAccount, loadState, mutate, toView } from '../core/storage';
 import { loginAnother, removeAccount, renameAccount, saveCurrent, switchTo } from '../core/switcher';
+import { availableUpdate, checkForUpdate } from '../core/update';
 import { refreshUsage } from '../core/usage';
 import type { AutoSwitchMode, RotationStrategy, Settings, StateView } from '../core/types';
 import { listAdapters } from '../sites';
 
 const ALARM = 'poll';
+const UPDATE_ALARM = 'update-check';
 const MODES: AutoSwitchMode[] = ['off', 'notify', 'switch'];
 const STRATEGIES: RotationStrategy[] = ['next', 'next-available', 'best'];
 
@@ -37,6 +39,17 @@ async function ensureAlarm(force = false): Promise<void> {
   await chrome.alarms.create(ALARM, { periodInMinutes: settings.pollMinutes });
 }
 
+async function ensureUpdateAlarm(): Promise<void> {
+  if (await chrome.alarms.get(UPDATE_ALARM)) return;
+  await chrome.alarms.create(UPDATE_ALARM, { periodInMinutes: 24 * 60 });
+}
+
+function onWorkerEvent(): void {
+  void ensureAlarm().catch(warn('alarm setup failed'));
+  void ensureUpdateAlarm().catch(warn('update alarm setup failed'));
+  void checkForUpdate();
+}
+
 export const handlers: Handlers = {
   async getState(): Promise<StateView> {
     const s = await loadState();
@@ -46,6 +59,7 @@ export const handlers: Handlers = {
       active: s.active,
       usage: s.usage,
       settings: s.settings,
+      update: availableUpdate(s.update, chrome.runtime.getManifest().version),
     };
   },
   async saveCurrent(req) {
@@ -99,6 +113,7 @@ export function onMessage(
 }
 
 export async function onAlarm(alarm: chrome.alarms.Alarm): Promise<void> {
+  if (alarm.name === UPDATE_ALARM) return checkForUpdate();
   if (alarm.name !== ALARM) return;
   try {
     await refreshUsage();
@@ -151,10 +166,11 @@ export async function onCommand(command: string): Promise<void> {
 
 chrome.runtime.onMessage.addListener(onMessage);
 chrome.commands.onCommand.addListener((c) => void onCommand(c));
-chrome.runtime.onInstalled.addListener(() => void ensureAlarm().catch(warn('alarm setup failed')));
-chrome.runtime.onStartup.addListener(() => void ensureAlarm().catch(warn('alarm setup failed')));
+chrome.runtime.onInstalled.addListener(onWorkerEvent);
+chrome.runtime.onStartup.addListener(onWorkerEvent);
 chrome.alarms.onAlarm.addListener((a) => void onAlarm(a));
 chrome.notifications.onButtonClicked.addListener((id, i) => void onNotificationButton(id, i));
 void ensureAlarm().catch(warn('alarm setup failed'));
+void ensureUpdateAlarm().catch(warn('update alarm setup failed'));
 // Session rules survive a worker restart; drop a cookie rule left behind by a killed cookieFetch.
 void chrome.declarativeNetRequest.updateSessionRules({ removeRuleIds: [RULE_ID] }).catch(warn('rule cleanup failed'));

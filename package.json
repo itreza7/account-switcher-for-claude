@@ -1,5 +1,5 @@
 {
-  "name": "claude-account-switcher",
+  "name": "account-switcher-for-claude",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -8,7 +8,8 @@
     "build": "tsc --noEmit && vite build",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "e2e": "npm run build && node e2e/run.mjs"
+    "e2e": "npm run build && node e2e/run.mjs",
+    "zip": "npm run build && mkdir -p release && rm -f release/account-switcher-for-claude.zip && cd dist && zip -qr ../release/account-switcher-for-claude.zip ."
   },
   "devDependencies": {
     "@crxjs/vite-plugin": "^3.0.0",

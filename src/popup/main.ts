@@ -280,10 +280,18 @@ function render(force = false): void {
         ),
       )
     : null;
+  const update = state?.update
+    ? h(
+        'div',
+        { class: 'banner info', role: 'status' },
+        h('span', {}, `Version ${state.update.version} is available.`),
+        h('button', { onclick: () => void chrome.tabs.create({ url: state!.update!.url }) }, 'Download'),
+      )
+    : null;
   const body = state
     ? [...state.sites.map((site) => siteSection(site, state!, now)), h('div', { class: 'footer' }, footerText(state))]
     : [h('p', { class: 'empty pad' }, error ? '' : 'Loading…')];
-  root.replaceChildren(header, ...(banner ? [banner] : []), ...body);
+  root.replaceChildren(header, ...(banner ? [banner] : []), ...(update ? [update] : []), ...body);
 }
 
 let debounce: ReturnType<typeof setTimeout> | undefined;

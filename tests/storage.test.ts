@@ -32,6 +32,7 @@ describe('loadState', () => {
       usage: {},
       settings: DEFAULT_SETTINGS,
       autoSwitch: { lastActionAt: null },
+      update: { latestVersion: null, url: null, checkedAt: null },
     });
   });
 

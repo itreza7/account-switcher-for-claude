@@ -3,9 +3,10 @@ import pkg from '../package.json' with { type: 'json' };
 
 export default defineManifest({
   manifest_version: 3,
-  name: 'Claude Account Switcher',
+  name: 'Account Switcher for Claude',
   version: pkg.version,
-  description: 'Switch between Claude accounts and watch 5-hour / weekly usage.',
+  description: 'Switch between Claude accounts and watch 5-hour / weekly usage. Not affiliated with Anthropic.',
+  homepage_url: 'https://github.com/itreza7/account-switcher-for-claude',
   icons: { 16: 'icon-16.png', 48: 'icon-48.png', 128: 'icon-128.png' },
   action: { default_popup: 'src/popup/index.html', default_title: 'Claude accounts' },
   options_page: 'src/options/index.html',

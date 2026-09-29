@@ -79,6 +79,8 @@ export interface StoreState {
   usage: Record<string, UsageEntry>;
   settings: Settings;
   autoSwitch: { lastActionAt: number | null };
+  /** Last result of the GitHub release check. */
+  update: { latestVersion: string | null; url: string | null; checkedAt: number | null };
 }
 
 export const SCHEMA_VERSION = 1;
@@ -95,4 +97,6 @@ export interface StateView {
   active: Record<SiteId, string | null>;
   usage: Record<string, UsageEntry>;
   settings: Settings;
+  /** Set only when a newer release than the installed version exists. */
+  update: { version: string; url: string } | null;
 }

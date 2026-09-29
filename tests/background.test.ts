@@ -24,6 +24,11 @@ const runAutoSwitch = vi.fn(async () => {});
 vi.mock('../src/core/autoswitch', () => ({ runAutoSwitch: () => runAutoSwitch() }));
 const switchNext = vi.fn(async (_siteId: string): Promise<unknown> => ({ id: 'n', label: 'Next one' }));
 vi.mock('../src/core/rotation', () => ({ switchNext: (siteId: string) => switchNext(siteId) }));
+const checkForUpdate = vi.fn(async () => {});
+vi.mock('../src/core/update', async (orig) => ({
+  ...(await orig<typeof import('../src/core/update')>()),
+  checkForUpdate: () => checkForUpdate(),
+}));
 
 let mock: ReturnType<typeof installChromeMock>;
 let bg: typeof import('../src/background/index');
@@ -63,6 +68,7 @@ describe('listeners', () => {
     expect(mock.chrome.notifications.onButtonClicked.addListener).toHaveBeenCalledTimes(1);
     expect(mock.chrome.commands.onCommand.addListener).toHaveBeenCalledTimes(1);
     await vi.waitFor(() => expect(mock.state.alarms.poll).toEqual({ periodInMinutes: DEFAULT_SETTINGS.pollMinutes }));
+    await vi.waitFor(() => expect(mock.state.alarms['update-check']).toEqual({ periodInMinutes: 24 * 60 }));
   });
 });
 
@@ -90,12 +96,24 @@ describe('onMessage', () => {
     };
     const { res, async } = await call({ type: 'getState' });
     expect(async).toBe(true);
-    const r = res as { ok: true; data: { sites: { id: string; hasUsage: boolean }[]; accounts: object[]; active: object; settings: object } };
+    const r = res as { ok: true; data: { sites: { id: string; hasUsage: boolean }[]; accounts: object[]; active: object; settings: object; update: unknown } };
     expect(r.ok).toBe(true);
     expect(r.data.sites.find((s) => s.id === 'claude')?.hasUsage).toBe(true);
     expect(r.data.accounts).toEqual([{ id: 'a', siteId: 'claude', label: 'La', identity: { key: 'a' }, createdAt: 1, updatedAt: 1 }]);
     expect(r.data.active).toEqual({ claude: 'a' });
     expect(r.data.settings).toEqual(DEFAULT_SETTINGS);
+    expect(r.data.update).toBeNull();
+  });
+
+  it('getState offers an update only when the release is newer than the installed 0.1.0', async () => {
+    const url = 'https://github.com/itreza7/account-switcher-for-claude/releases/tag/v0.2.0';
+    const withRelease = (latestVersion: string) => {
+      mock.state.storage.state = { schemaVersion: 1, update: { latestVersion, url, checkedAt: 1 } };
+    };
+    withRelease('0.2.0');
+    expect((await call({ type: 'getState' })).res).toMatchObject({ data: { update: { version: '0.2.0', url } } });
+    withRelease('0.1.0');
+    expect((await call({ type: 'getState' })).res).toMatchObject({ data: { update: null } });
   });
 
   it('errors from handlers become { ok: false }', async () => {
@@ -181,6 +199,12 @@ describe('keyboard shortcut', () => {
 });
 
 describe('alarm', () => {
+  it('update-check alarm checks GitHub and does not poll usage', async () => {
+    await bg.onAlarm({ name: 'update-check', scheduledTime: 0, persistAcrossSessions: false });
+    expect(checkForUpdate).toHaveBeenCalledTimes(1);
+    expect(refreshUsage).not.toHaveBeenCalled();
+  });
+
   it('poll alarm refreshes usage then runs auto-switch; ignores other alarms', async () => {
     await bg.onAlarm({ name: 'other', scheduledTime: 0, persistAcrossSessions: false });
     expect(refreshUsage).not.toHaveBeenCalled();

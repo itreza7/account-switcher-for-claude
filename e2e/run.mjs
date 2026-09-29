@@ -17,7 +17,7 @@ fs.mkdirSync(OUT, { recursive: true });
 const TMP = fs.mkdtempSync(path.join(os.tmpdir(), 'cas-e2e-'));
 execFileSync('openssl', [
   'req', '-x509', '-newkey', 'rsa:2048', '-nodes', '-days', '1', '-subj', '/CN=claude.ai',
-  '-addext', 'subjectAltName=DNS:claude.ai', '-keyout', path.join(TMP, 'key.pem'), '-out', path.join(TMP, 'cert.pem'),
+  '-addext', 'subjectAltName=DNS:claude.ai,DNS:api.github.com', '-keyout', path.join(TMP, 'key.pem'), '-out', path.join(TMP, 'cert.pem'),
 ], { stdio: 'ignore' });
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const results = [];
@@ -41,6 +41,11 @@ const server = https.createServer({ key: fs.readFileSync(path.join(TMP, 'key.pem
   const path = req.url.split('?')[0];
   if (path.startsWith('/api/')) log.push({ path, cookie: req.headers.cookie ?? '', sk });
   const json = (code, body) => { res.writeHead(code, { 'content-type': 'application/json' }); res.end(JSON.stringify(body)); };
+  if (path === '/repos/itreza7/account-switcher-for-claude/releases/latest') {
+    // Real GitHub sends this CORS header; the extension has no api.github.com permission and relies on it.
+    res.writeHead(200, { 'content-type': 'application/json', 'access-control-allow-origin': '*' });
+    return res.end(JSON.stringify({ tag_name: 'v9.9.9', html_url: 'https://github.com/itreza7/account-switcher-for-claude/releases/tag/v9.9.9' }));
+  }
   const login = path.match(/^\/login-as\/([ABC])$/);
   if (login) {
     res.writeHead(302, {
@@ -77,7 +82,7 @@ const browser = await puppeteer.launch({
   enableExtensions: [DIST],
   acceptInsecureCerts: true,
   userDataDir: path.join(TMP, 'profile'),
-  args: ['--no-first-run', '--no-default-browser-check', `--host-resolver-rules=MAP claude.ai 127.0.0.1:${PORT}`, '--ignore-certificate-errors'],
+  args: ['--no-first-run', '--no-default-browser-check', `--host-resolver-rules=MAP claude.ai 127.0.0.1:${PORT}, MAP api.github.com 127.0.0.1:${PORT}`, '--ignore-certificate-errors'],
 });
 
 try {
@@ -111,8 +116,10 @@ try {
   };
   const claudeSection = '(//section[contains(concat(" ",@class," ")," site ")])[1]';
 
-  // 1. Save A
   let popup = await openPopup();
+  check('update banner: newer GitHub release is offered', (await text(popup)).includes('Version 9.9.9 is available'), await text(popup));
+
+  // 1. Save A
   await clickText(popup, 'Save current session', claudeSection);
   await sleep(1500);
   let s = await state();

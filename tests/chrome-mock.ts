@@ -27,6 +27,7 @@ export function installChromeMock() {
   const chromeMock = {
     runtime: {
       id: 'test-extension-id',
+      getManifest: vi.fn(() => ({ version: '0.1.0' })),
       getURL: (p: string) => `chrome-extension://test-extension-id/${p.replace(/^\//, '')}`,
       sendMessage: vi.fn(),
       onMessage: { addListener: vi.fn() },

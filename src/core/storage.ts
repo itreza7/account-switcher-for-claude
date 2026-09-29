@@ -29,6 +29,11 @@ function withDefaults(raw: Partial<StoreState> | undefined): StoreState {
     usage: s.usage ?? {},
     settings: { ...DEFAULT_SETTINGS, ...s.settings },
     autoSwitch: { lastActionAt: s.autoSwitch?.lastActionAt ?? null },
+    update: {
+      latestVersion: s.update?.latestVersion ?? null,
+      url: s.update?.url ?? null,
+      checkedAt: s.update?.checkedAt ?? null,
+    },
   };
 }
 
