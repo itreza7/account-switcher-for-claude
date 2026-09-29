@@ -76,6 +76,37 @@ const server = https.createServer({ key: fs.readFileSync(path.join(TMP, 'key.pem
 await new Promise((r) => server.listen(0, '127.0.0.1', r));
 const PORT = server.address().port;
 
+/** README images (DOCS=1): popup in light + dark, and the settings page, at 2x. */
+async function docScreenshots(browser, extId) {
+  const DOCS_DIR = path.resolve(HERE, '../docs');
+  fs.mkdirSync(DOCS_DIR, { recursive: true });
+  const shoot = async (page, scheme, width, file) => {
+    const p = await browser.newPage();
+    await p.emulateMediaFeatures([{ name: 'prefers-color-scheme', value: scheme }]);
+    await p.setViewport({ width, height: 600, deviceScaleFactor: 2 });
+    await p.goto(`chrome-extension://${extId}/src/${page}/index.html`);
+    await sleep(2500); // let the popup's usage refresh finish
+    // The fake server always offers v9.9.9; that banner is test noise, not part of the normal view.
+    await p.evaluate(() => document.querySelector('.banner.info')?.remove());
+    const height = await p.evaluate(() => document.documentElement.scrollHeight);
+    await p.screenshot({ path: path.join(DOCS_DIR, file), clip: { x: 0, y: 0, width, height } });
+    await p.close();
+  };
+  // Show default settings, not the ones the test changed.
+  const reset = await browser.newPage();
+  await reset.goto(`chrome-extension://${extId}/src/options/index.html`);
+  await reset.evaluate(() =>
+    chrome.runtime.sendMessage({
+      type: 'updateSettings',
+      patch: { pollMinutes: 5, threshold: 90, autoSwitchMode: 'notify', cooldownMinutes: 10, rotationStrategy: 'best' },
+    }),
+  );
+  await reset.close();
+  await shoot('popup', 'light', 360, 'popup-light.png');
+  await shoot('popup', 'dark', 360, 'popup-dark.png');
+  await shoot('options', 'light', 640, 'settings.png');
+}
+
 const browser = await puppeteer.launch({
   executablePath: CHROME,
   headless: true,
@@ -301,6 +332,7 @@ try {
   popup = await openPopup();
   await popup.screenshot({ path: OUT + '6-popup-rotation.png' });
   check('popup footer shows strategy', (await text(popup)).includes('Next: next available'), await text(popup));
+  if (process.env.DOCS) await docScreenshots(browser, extId);
 
   check('no popup page errors', popupErrors.length === 0, popupErrors.join(' / '));
   check('no leftover DNR rules', (await sw.evaluate(() => chrome.declarativeNetRequest.getSessionRules())).length === 0);

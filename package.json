@@ -9,6 +9,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "e2e": "npm run build && node e2e/run.mjs",
+    "screenshots": "npm run build && DOCS=1 node e2e/run.mjs",
     "zip": "npm run build && mkdir -p release && rm -f release/account-switcher-for-claude.zip && cd dist && zip -qr ../release/account-switcher-for-claude.zip ."
   },
   "devDependencies": {

@@ -5,6 +5,12 @@ A Chrome extension to switch between several Claude accounts in one click, and t
 
 > Not affiliated with or endorsed by Anthropic. "Claude" is a trademark of Anthropic.
 
+<p align="center">
+  <img src="docs/popup-light.png" alt="Popup with three accounts and their 5-hour and weekly usage (light theme)" width="300">
+  &nbsp;
+  <img src="docs/popup-dark.png" alt="The same popup in the dark theme" width="300">
+</p>
+
 ## Features
 
 - **Save accounts** and **switch** between them without logging out. Open Claude tabs reload as the new account.
@@ -44,6 +50,10 @@ Your saved accounts stay. (Removing the extension deletes them.)
 Settings (gear icon): usage check interval, near-limit threshold, auto-switch (off / notify / switch),
 cooldown, and the "switch to next" strategy. Change the shortcut at `chrome://extensions/shortcuts`.
 
+<p align="center">
+  <img src="docs/settings.png" alt="Settings page" width="520">
+</p>
+
 **Remove** in the popup only makes the extension forget an account. It does not log you out.
 
 ## Privacy
@@ -70,6 +80,7 @@ npm run build      # build into dist/ (load it with "Load unpacked")
 npm test           # unit tests
 npm run e2e        # end-to-end test in a throwaway Chrome profile against a fake claude.ai (needs Chrome + openssl)
 npm run zip        # build release/account-switcher-for-claude.zip
+npm run screenshots  # e2e run that also refreshes the README images in docs/
 ```
 
 ### Release
